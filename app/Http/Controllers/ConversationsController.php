@@ -23,6 +23,7 @@ class ConversationsController extends Controller
 
     public function __construct(ConversationRepository $conversationRepository, AuthManager $auth)
     {
+        $this->middleware('auth');
         $this->r = $conversationRepository;
         $this->auth = $auth;
     }
@@ -35,20 +36,28 @@ class ConversationsController extends Controller
     }
 
     public function show (User $user) {
+        $me = $this->auth->user();
+        $messages = $this->r->getMessagesFor($me->id, $user->id)->paginate(50);
+        $unread = $this->r->unreadCount($me->id);
+        if (isset($unread[$user->id])) {
+            $this->r->readAllFrom($user->id, $me->id);
+            unset($unread[$user->id]);
+        }
         return view('conversations/show', [
-            'users' => $this->r->getConversations($this->auth->user()->id),
+            'users' => $this->r->getConversations($me->id),
             'user' => $user,
-            'messages' => $this->r->getMessagesFor($this->auth->user()->id, $user->id)->paginate(50),
-            'unread' => $this->r->unreadCount($this->auth->user()->id)
+            'messages' => $messages,
+            'unread' => $unread
         ]);
     }
 
     public function store (User $user, StoreMessageRequest $request) {
-        $this->r->createMessage(
+        $message = $this->r->createMessage(
                 $request->get('content'),
                 $this->auth->user()->id,
                 $user->id
         );
+        $user->notify(new MessageReceived($message));
         return redirect()->route('conversations.show', [$user->id]);
     }
 
