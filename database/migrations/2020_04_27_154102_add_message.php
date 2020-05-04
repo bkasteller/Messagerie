@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class AddMessage extends Migration
 {
@@ -20,7 +21,8 @@ class AddMessage extends Migration
             $table->foreign('from_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('to_id')->references('id')->on('users')->onDelete('cascade');
             $table->text('content');
-            $table->timestamp('created_at')->userCurrent();
+            //$table->timestamp('created_at')->userCurrent();
+            $table->timestamp('created_at')->default(Carbon::now());
             $table->dateTime('read_at')->nullable();
         });
     }

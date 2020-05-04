@@ -35,8 +35,8 @@ class ConversationRepository {
         return $this->message->newQuery()->create([
             'content' => $content,
             'from_id' => $from,
-            'to_id' => $to,
-            'created_at' => Carbon::now()
+            'to_id' => $to
+            //'created_at' => Carbon::now()
         ]);
     }
 
